@@ -4,42 +4,65 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Info, Shield, Sparkles, Github, Chrome } from "lucide-react";
 
+
+
 // --- Lightweight hash router ---
-function useRoute() {
-  const [route, setRoute] = useState(() => window.location.hash.replace('#', '') || '/');
+type RouteSetter = (r: string) => void;
+type UseRouteReturn = readonly [string, RouteSetter];
+
+function useRoute(): UseRouteReturn {
+  const [route, setRoute] = useState<string>(
+    () => window.location.hash.replace("#", "") || "/"
+  );
+
   useEffect(() => {
-    const onHash = () => setRoute(window.location.hash.replace('#', '') || '/');
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const onHash = () => setRoute(window.location.hash.replace("#", "") || "/");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
-  return [route, (r) => (window.location.hash = r)] as const;
+
+  const navigate: RouteSetter = (r) => {
+    window.location.hash = r;
+  };
+
+  // Either of these is fine (pick one):
+  return [route, navigate] as const;                     // option A
+  // return [route, navigate] satisfies UseRouteReturn;  // option B (TS 4.9+)
 }
 
-// --- Animated background (interactive particle web) ---
-function ParticleField() {
-  const canvasRef = useRef(null);
-  const particles = useRef([]);
-  const mouse = useRef({ x: 0, y: 0 });
 
-  const config = useMemo(() => ({
-    count: 120,
-    linkDist: 140,
-    radius: 1.8,
-    speed: 0.3,
-  }), []);
+function ParticleField() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  type Particle = { x: number; y: number; vx: number; vy: number };
+  const particles = useRef<Particle[]>([]);
+  const mouse = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const config = useMemo(
+    () => ({
+      count: 120,
+      linkDist: 140,
+      radius: 1.8,
+      speed: 0.3,
+    }),
+    []
+  );
 
   useEffect(() => {
-    const canvas = canvasRef.current as HTMLCanvasElement | null;
+    const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     let raf = 0;
 
     const resize = () => {
       canvas.width = canvas.clientWidth * window.devicePixelRatio;
       canvas.height = canvas.clientHeight * window.devicePixelRatio;
     };
+
     const resetParticles = () => {
-      particles.current = Array.from({ length: config.count }).map(() => ({
+      particles.current = Array.from({ length: config.count }, (): Particle => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: (Math.random() - 0.5) * config.speed,
@@ -48,19 +71,20 @@ function ParticleField() {
     };
 
     const draw = () => {
-      if (!ctx) return;
-      // subtle gradient background overlay
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      grad.addColorStop(0, 'rgba(99,102,241,0.10)'); // indigo-500-ish
-      grad.addColorStop(1, 'rgba(236,72,153,0.08)'); // pink-500-ish
+      grad.addColorStop(0, "rgba(99,102,241,0.10)");
+      grad.addColorStop(1, "rgba(236,72,153,0.08)");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // update & draw particles
       const ps = particles.current;
-      for (let p of ps) {
-        p.x += p.vx; p.y += p.vy;
+
+      // update positions
+      for (const p of ps) {
+        p.x += p.vx;
+        p.y += p.vy;
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
       }
@@ -70,8 +94,7 @@ function ParticleField() {
         for (let j = i + 1; j < ps.length; j++) {
           const dx = ps[i].x - ps[j].x;
           const dy = ps[i].y - ps[j].y;
-          const d2 = dx * dx + dy * dy;
-          const dist = Math.sqrt(d2);
+          const dist = Math.hypot(dx, dy);
           if (dist < config.linkDist * window.devicePixelRatio) {
             const a = 1 - dist / (config.linkDist * window.devicePixelRatio);
             ctx.strokeStyle = `rgba(255,255,255,${0.25 * a})`;
@@ -84,18 +107,22 @@ function ParticleField() {
         }
       }
 
-      // draw particles (attracted to mouse)
-      for (let p of ps) {
+      // draw particles (mouse attraction)
+      for (const p of ps) {
         const dx = (mouse.current.x - p.x) * 0.0008;
         const dy = (mouse.current.y - p.y) * 0.0008;
-        p.vx += dx; p.vy += dy;
+        p.vx += dx;
+        p.vy += dy;
         const len = Math.hypot(p.vx, p.vy);
         const max = config.speed * 2;
-        if (len > max) { p.vx = (p.vx / len) * max; p.vy = (p.vy / len) * max; }
+        if (len > max) {
+          p.vx = (p.vx / len) * max;
+          p.vy = (p.vy / len) * max;
+        }
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, config.radius * window.devicePixelRatio, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
         ctx.fill();
       }
 
@@ -112,16 +139,21 @@ function ParticleField() {
     resetParticles();
     draw();
 
-    window.addEventListener('resize', () => { resize(); resetParticles(); });
-    window.addEventListener('mousemove', onMouse);
+    window.addEventListener("resize", () => {
+      resize();
+      resetParticles();
+    });
+    window.addEventListener("mousemove", onMouse);
 
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('mousemove', onMouse); };
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", onMouse);
+    };
   }, [config]);
 
-  return (
-    <canvas ref={canvasRef} className="absolute inset-0 -z-10 h-full w-full rounded-2xl"/>
-  );
+  return <canvas ref={canvasRef} className="absolute inset-0 -z-10 h-full w-full rounded-2xl" />;
 }
+
 
 // --- Shared layout ---
 function Shell({ children, routeTo }: { children: React.ReactNode; routeTo: (r: string) => void }) {
