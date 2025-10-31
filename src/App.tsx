@@ -8,18 +8,26 @@ import { Download, Info, Shield, Sparkles, Github, Chrome } from "lucide-react";
 
 // --- Lightweight hash router ---
 type RouteSetter = (r: string) => void;
-type UseRouteReturn = [string, RouteSetter];
+type UseRouteReturn = readonly [string, RouteSetter];
 
 function useRoute(): UseRouteReturn {
-  const [route, setRoute] = useState<string>(() => window.location.hash.replace('#', '') || '/');
+  const [route, setRoute] = useState<string>(
+    () => window.location.hash.replace("#", "") || "/"
+  );
 
   useEffect(() => {
-    const onHash = () => setRoute(window.location.hash.replace('#', '') || '/');
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const onHash = () => setRoute(window.location.hash.replace("#", "") || "/");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  return [route, (r: string) => { window.location.hash = r; }];
+  const navigate: RouteSetter = (r) => {
+    window.location.hash = r;
+  };
+
+  // Either of these is fine (pick one):
+  return [route, navigate] as const;                     // option A
+  // return [route, navigate] satisfies UseRouteReturn;  // option B (TS 4.9+)
 }
 
 
