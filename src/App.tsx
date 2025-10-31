@@ -4,32 +4,39 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Info, Shield, Sparkles, Github, Chrome } from "lucide-react";
 
+
+
 // --- Lightweight hash router ---
-function useRoute() {
-  const [route, setRoute] = useState(() => window.location.hash.replace('#', '') || '/');
+type RouteSetter = (r: string) => void;
+type UseRouteReturn = [string, RouteSetter];
+
+function useRoute(): UseRouteReturn {
+  const [route, setRoute] = useState<string>(() => window.location.hash.replace('#', '') || '/');
+
   useEffect(() => {
     const onHash = () => setRoute(window.location.hash.replace('#', '') || '/');
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
-  return [route, (r) => (window.location.hash = r)] as const;
+
+  return [route, (r: string) => { window.location.hash = r; }];
 }
 
+
+type Particle = { x: number; y: number; vx: number; vy: number };
 // --- Animated background (interactive particle web) ---
 function ParticleField() {
-  const canvasRef = useRef(null);
-  const particles = useRef([]);
-  const mouse = useRef({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const particles = useRef<Particle[]>([]);
+  const mouse = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const config = useMemo(() => ({
-    count: 120,
-    linkDist: 140,
-    radius: 1.8,
-    speed: 0.3,
-  }), []);
+  const config = useMemo(
+    () => ({ count: 120, linkDist: 140, radius: 1.8, speed: 0.3 } as const),
+    []
+  );
 
   useEffect(() => {
-    const canvas = canvasRef.current as HTMLCanvasElement | null;
+    const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let raf = 0;
@@ -38,13 +45,16 @@ function ParticleField() {
       canvas.width = canvas.clientWidth * window.devicePixelRatio;
       canvas.height = canvas.clientHeight * window.devicePixelRatio;
     };
+
     const resetParticles = () => {
-      particles.current = Array.from({ length: config.count }).map(() => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * config.speed,
-        vy: (Math.random() - 0.5) * config.speed,
-      }));
+      particles.current = Array.from({ length: config.count }, () => {
+        return {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * config.speed,
+          vy: (Math.random() - 0.5) * config.speed,
+        } satisfies Particle;
+      });
     };
 
     const draw = () => {
