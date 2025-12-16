@@ -186,7 +186,7 @@ function Shell({ children, routeTo }: { children: React.ReactNode; routeTo: (r: 
             <a className="inline-flex items-center gap-2 hover:text-white" href="https://github.com/" target="_blank" rel="noreferrer">
               <Github className="h-4 w-4"/> GitHub
             </a>
-            <a className="inline-flex items-center gap-2 hover:text-white" href="#/download">
+            <a className="inline-flex items-center gap-2 hover:text-white" href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer">
               <Chrome className="h-4 w-4"/> Chrome Extension
             </a>
           </div>
