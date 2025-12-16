@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Info, Shield, Sparkles, Github, Chrome } from "lucide-react";
+const CHROME_STORE_URL =
+  "https://chromewebstore.google.com/detail/sentinel-%E2%80%94-rate-this-page/iibilahgippjmgjechpklmpnlecccppb";
 
 
 
@@ -282,7 +284,9 @@ function About() {
         </ul>
         <div className="mt-6 flex gap-3">
           <Button asChild>
-            <a href="#/download"><Download className="mr-2 h-4 w-4"/> Download</a>
+            <a href={CHROME_STORE_URL} target="_blank" rel="noopener noreferrer">
+            <Chrome className="mr-2 h-4 w-4" /> Add to Chrome
+            </a>
           </Button>
           <Button variant="secondary" asChild>
             <a href="https://github.com/" target="_blank" rel="noreferrer"><Github className="mr-2 h-4 w-4"/> View on GitHub</a>
@@ -305,15 +309,11 @@ function DownloadPage() {
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {/* TODO: Replace with your actual Chrome Web Store URL */}
           <Button size="lg" asChild>
-            <a href="https://chromewebstore.google.com/" target="_blank" rel="noreferrer">
+            <a href={CHROME_STORE_URL} target="_blank" rel="noreferrer">
               <Chrome className="mr-2 h-5 w-5"/> Add to Chrome
             </a>
           </Button>
-          <Button size="lg" variant="secondary" asChild>
-            <a href="/sentinel-latest.crx" download>
-              <Download className="mr-2 h-5 w-5"/> Download .crx
-            </a>
-          </Button>
+
         </div>
 
         <div className="mt-10 grid md:grid-cols-3 gap-4">
