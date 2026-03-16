@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Info, Shield, Sparkles, Github, Chrome } from "lucide-react";
+import { Download, Info, Shield, Sparkles, Github, Chrome, Database } from "lucide-react";
 const CHROME_STORE_URL =
   "https://chromewebstore.google.com/detail/sentinel-%E2%80%94-rate-this-page/iibilahgippjmgjechpklmpnlecccppb";
 
@@ -216,6 +216,11 @@ function Home({ routeTo }: { routeTo: (r: string) => void }) {
           </Button>
           <Button size="lg" variant="secondary" onClick={() => routeTo('/about')}>
             <Info className="mr-2 h-5 w-5"/> How it works
+          </Button>
+          <Button size="lg" variant="secondary" asChild>
+            <a href="/dataset.html">
+              <Database className="mr-2 h-5 w-5"/> Public Dataset
+            </a>
           </Button>
         </div>
 
